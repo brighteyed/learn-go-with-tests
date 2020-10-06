@@ -1,25 +1,35 @@
 package racer
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 )
 
-// Racer returns a URL the loads faster
-func Racer(a, b string) (winner string) {
-	startA := time.Now()
-	http.Get(a)
-	durationA := time.Since(startA)
+var tenSecondsTimeout = 10 * time.Second
 
-	startB := time.Now()
-	http.Get(b)
-	durationB := time.Since(startB)
+// Racer returns a URL that loads faster
+func Racer(a, b string) (winner string, err error) {
+	return ConfigurableRacer(a, b, tenSecondsTimeout)
+}
 
-	if durationA < durationB {
-		winner = a
-	} else {
-		winner = b
+// ConfigurableRacer returns a URL that loads faster or signals about timeout
+func ConfigurableRacer(a, b string, timeout time.Duration) (winner string, err error) {
+	select {
+	case <-ping(a):
+		return a, nil
+	case <-ping(b):
+		return b, nil
+	case <-time.After(timeout):
+		return "", fmt.Errorf("timed out waiting for %s and %s", a, b)
 	}
+}
 
-	return
+func ping(url string) chan struct{} {
+	ch := make(chan struct{})
+	go func() {
+		http.Get(url)
+		close(ch)
+	}()
+	return ch
 }
