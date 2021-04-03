@@ -1,10 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 var ErrPlayerNotFound = errors.New("player not found")
@@ -12,14 +12,41 @@ var ErrPlayerNotFound = errors.New("player not found")
 type PlayerStore interface {
 	GetPlayerScore(name string) (int, error)
 	RecordWin(name string)
+	GetLeague() []Player
 }
 
 type PlayerServer struct {
 	store PlayerStore
+	http.Handler
 }
 
-func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	player := strings.TrimPrefix(r.URL.Path, "/players/")
+type Player struct {
+	Name string
+	Wins int
+}
+
+func NewPlayerServer(store PlayerStore) *PlayerServer {
+	p := new(PlayerServer)
+
+	router := http.NewServeMux()
+	router.Handle("/players/", http.HandlerFunc(p.playersHandler))
+	router.Handle("/league", http.HandlerFunc(p.leagueHandler))
+
+	p.Handler = router
+	p.store = store
+
+	return p
+}
+
+const jsonContentType = "application/json"
+
+func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", jsonContentType)
+	json.NewEncoder(w).Encode(p.store.GetLeague())
+}
+
+func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
+	player := r.URL.Path[len("/players/"):]
 
 	switch r.Method {
 	case http.MethodGet:
