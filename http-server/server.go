@@ -12,7 +12,7 @@ var ErrPlayerNotFound = errors.New("player not found")
 type PlayerStore interface {
 	GetPlayerScore(name string) (int, error)
 	RecordWin(name string)
-	GetLeague() []Player
+	GetLeague() League
 }
 
 type PlayerServer struct {
@@ -42,7 +42,9 @@ const jsonContentType = "application/json"
 
 func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", jsonContentType)
-	json.NewEncoder(w).Encode(p.store.GetLeague())
+
+	league := p.store.GetLeague()
+	json.NewEncoder(w).Encode(league)
 }
 
 func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
