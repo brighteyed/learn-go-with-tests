@@ -1,4 +1,4 @@
-package main
+package poker
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ type FileSystemStore struct {
 	league   League
 }
 
-func NewFileSystemStore(file *os.File) (PlayerStore, error) {
+func NewFileSystemStore(file *os.File) (*FileSystemStore, error) {
 	if err := initializePlayerDbFile(file); err != nil {
 		return nil, fmt.Errorf("problem initialising player db file %s, %v", file.Name(), err)
 	}
@@ -53,6 +53,24 @@ func (f *FileSystemStore) GetLeague() League {
 	})
 
 	return f.league
+}
+
+func FileSystemPlayerStoreFromFile(path string) (*FileSystemStore, func(), error) {
+	db, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem opening file %s, %v", path, err)
+	}
+
+	closeFunc := func() {
+		db.Close()
+	}
+
+	store, err := NewFileSystemStore(db)
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem creating player store, %v", err)
+	}
+
+	return store, closeFunc, err
 }
 
 func initializePlayerDbFile(file *os.File) error {

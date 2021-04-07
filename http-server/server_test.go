@@ -1,4 +1,4 @@
-package main
+package poker
 
 import (
 	"fmt"
@@ -7,28 +7,6 @@ import (
 	"reflect"
 	"testing"
 )
-
-type StubPlayerStore struct {
-	scores   map[string]int
-	winCalls []string
-	league   League
-}
-
-func (s *StubPlayerStore) GetPlayerScore(name string) (int, error) {
-	if val, ok := s.scores[name]; ok {
-		return val, nil
-	}
-
-	return 0, ErrPlayerNotFound
-}
-
-func (s *StubPlayerStore) RecordWin(name string) {
-	s.winCalls = append(s.winCalls, name)
-}
-
-func (s *StubPlayerStore) GetLeague() League {
-	return s.league
-}
 
 func TestGETPlayer(t *testing.T) {
 	store := StubPlayerStore{
@@ -86,14 +64,7 @@ func TestStoreWins(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusAccepted)
-
-		if len(store.winCalls) != 1 {
-			t.Fatalf("want %d calls to RecordWin, got %d", 1, len(store.winCalls))
-		}
-
-		if store.winCalls[0] != player {
-			t.Errorf("did not store correct winner, got %s want %s", store.winCalls[0], player)
-		}
+		AssertPlayerWin(t, &store, player)
 	})
 }
 
