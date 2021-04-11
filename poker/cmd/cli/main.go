@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	poker "github.com/brighteyed/learn-go-with-tests/http-server"
+	poker "github.com/brighteyed/learn-go-with-tests/poker"
 )
 
 const dbFileName = "game.db.json"
@@ -22,6 +22,7 @@ func main() {
 
 	defer close()
 
-	cli := poker.NewCLI(store, os.Stdin)
+	game := poker.NewGame(store, poker.BlindAlerterFunc(poker.StdOutAlerter))
+	cli := poker.NewCLI(os.Stdin, os.Stdout, game)
 	cli.PlayPoker()
 }

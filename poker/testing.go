@@ -31,9 +31,28 @@ func AssertPlayerWin(t *testing.T, playerStore *StubPlayerStore, winner string) 
 		t.Fatalf("got %d calls to RecordWin want %d", len(playerStore.winCalls), 1)
 	}
 
-	got := playerStore.winCalls[0]
+	assertWinner(t, playerStore.winCalls[0], winner)
+}
 
-	if got != winner {
-		t.Errorf("didn't record correct winner, got %s want %s", got, winner)
+func AssertStartCalledWith(t *testing.T, game *GameSpy, want int) {
+	t.Helper()
+
+	got := game.StartedWith
+	if got != want {
+		t.Errorf("got number of players %d, want %d", got, want)
+	}
+}
+
+func AssertFinishCalledWith(t *testing.T, game *GameSpy, winner string) {
+	t.Helper()
+
+	assertWinner(t, game.FinishedWith, winner)
+}
+
+func assertWinner(t *testing.T, got, want string) {
+	t.Helper()
+
+	if got != want {
+		t.Errorf("didn't record correct winner, got %s want %s", got, want)
 	}
 }

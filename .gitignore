@@ -13,5 +13,5 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-http-server/game.db.json
-http-server/cmd/cli/game.db.json
+poker/game.db.json
+poker/cmd/cli/game.db.json
