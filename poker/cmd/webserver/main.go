@@ -18,7 +18,13 @@ func main() {
 
 	defer close()
 
-	if err := http.ListenAndServe(":5000", poker.NewPlayerServer(store)); err != nil {
+	game := poker.NewTexasHoldem(store, poker.BlindAlerterFunc(poker.Alerter))
+	server, err := poker.NewPlayerServer(store, game)
+	if err != nil {
+		log.Fatalf("could not create server, %v", err)
+	}
+
+	if err := http.ListenAndServe(":5000", server); err != nil {
 		log.Fatalf("could not listen on port 5000, %v", err)
 	}
 }

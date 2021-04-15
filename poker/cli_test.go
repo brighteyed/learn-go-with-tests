@@ -19,7 +19,7 @@ func TestCLI(t *testing.T) {
 		cli.PlayPoker()
 
 		assertMessagesSentToUser(t, stdout, poker.PlayerPrompt)
-		poker.AssertStartCalledWith(t, game, 3)
+		poker.AssertGameStartedWith(t, game, 3)
 		poker.AssertFinishCalledWith(t, game, "Chris")
 	})
 
@@ -31,7 +31,7 @@ func TestCLI(t *testing.T) {
 		cli := poker.NewCLI(stdin, stdout, game)
 		cli.PlayPoker()
 
-		poker.AssertStartCalledWith(t, game, 8)
+		poker.AssertGameStartedWith(t, game, 8)
 		poker.AssertFinishCalledWith(t, game, "Cleo")
 	})
 

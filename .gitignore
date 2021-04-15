@@ -15,3 +15,4 @@
 # vendor/
 poker/game.db.json
 poker/cmd/cli/game.db.json
+poker/cmd/webserver/game.db.json

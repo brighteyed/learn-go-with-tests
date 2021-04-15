@@ -1,6 +1,9 @@
 package poker
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 type StubPlayerStore struct {
 	scores   map[string]int
@@ -31,28 +34,46 @@ func AssertPlayerWin(t *testing.T, playerStore *StubPlayerStore, winner string) 
 		t.Fatalf("got %d calls to RecordWin want %d", len(playerStore.winCalls), 1)
 	}
 
-	assertWinner(t, playerStore.winCalls[0], winner)
+	got := playerStore.winCalls[0]
+
+	if got != winner {
+		t.Errorf("didn't record correct winner, got %s want %s", got, winner)
+	}
 }
 
-func AssertStartCalledWith(t *testing.T, game *GameSpy, want int) {
+func AssertGameStartedWith(t *testing.T, game *GameSpy, want int) {
 	t.Helper()
 
-	got := game.StartedWith
-	if got != want {
-		t.Errorf("got number of players %d, want %d", got, want)
+	passed := retryUntil(500*time.Millisecond, func() bool {
+		return game.StartedWith == want
+	})
+
+	if !passed {
+		t.Errorf("got number of players %d, want %d", game.StartedWith, want)
 	}
 }
 
 func AssertFinishCalledWith(t *testing.T, game *GameSpy, winner string) {
 	t.Helper()
 
-	assertWinner(t, game.FinishedWith, winner)
+	passed := retryUntil(500*time.Millisecond, func() bool {
+		return game.FinishedWith == winner
+	})
+
+	if !passed {
+		t.Errorf("didn't record correct winner, got %s want %s", game.FinishedWith, winner)
+	}
 }
 
-func assertWinner(t *testing.T, got, want string) {
-	t.Helper()
+func retryUntil(d time.Duration, condition func() bool) bool {
 
-	if got != want {
-		t.Errorf("didn't record correct winner, got %s want %s", got, want)
+	deadline := time.Now().Add(d)
+
+	for time.Now().Before(deadline) {
+		if condition() {
+			return true
+		}
 	}
+
+	return false
 }
